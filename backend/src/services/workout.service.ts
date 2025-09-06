@@ -1,7 +1,7 @@
 import { Workout, Difficulty, MuscleGroup, UserRole, WorkoutSession } from '@prisma/client';
 import { getPrismaClient } from '../utils/database';
 import { AppError } from '../middleware/errorHandler';
-import { cacheGet, cacheSet, cacheDel } from '../utils/redis';
+// Redis removed for deployment - caching disabled
 import { logger } from '../utils/logger';
 
 interface CreateWorkoutData {
@@ -119,7 +119,7 @@ export class WorkoutService {
     });
 
     // Invalidate cache
-    await cacheDel('workouts:list');
+    // await cacheDel('workouts:list'); // Redis disabled
     
     logger.info(`Workout created: ${workout.id} by user ${userId}`);
     return workout;
@@ -228,7 +228,8 @@ export class WorkoutService {
 
   async getWorkoutById(id: string, userId?: string): Promise<any> {
     const cacheKey = `workout:${id}:${userId || 'anonymous'}`;
-    const cached = await cacheGet(cacheKey);
+    // const cached = await cacheGet(cacheKey);
+    const cached = null; // Redis disabled
     
     if (cached) {
       return cached;
@@ -335,7 +336,7 @@ export class WorkoutService {
     };
 
     // Cache for 1 hour
-    await cacheSet(cacheKey, result, 3600);
+    // await cacheSet(cacheKey, result, 3600); // Redis disabled
 
     return result;
   }
@@ -398,8 +399,8 @@ export class WorkoutService {
     });
 
     // Invalidate cache
-    await cacheDel(`workout:${id}`);
-    await cacheDel('workouts:list');
+    // await cacheDel(`workout:${id}`); // Redis disabled
+    // await cacheDel('workouts:list'); // Redis disabled
 
     logger.info(`Workout updated: ${id} by user ${userId}`);
     return updatedWorkout;
@@ -425,8 +426,8 @@ export class WorkoutService {
     });
 
     // Invalidate cache
-    await cacheDel(`workout:${id}`);
-    await cacheDel('workouts:list');
+    // await cacheDel(`workout:${id}`); // Redis disabled
+    // await cacheDel('workouts:list'); // Redis disabled
 
     logger.info(`Workout deleted: ${id} by user ${userId}`);
   }
@@ -442,8 +443,8 @@ export class WorkoutService {
     });
 
     // Invalidate caches
-    await cacheDel(`user:favorites:${userId}`);
-    await cacheDel(`workout:${workoutId}:${userId}`);
+    // await cacheDel(`user:favorites:${userId}`); // Redis disabled
+    // await cacheDel(`workout:${workoutId}:${userId}`); // Redis disabled
   }
 
   async unfavoriteWorkout(workoutId: string, userId: string): Promise<void> {
@@ -457,13 +458,14 @@ export class WorkoutService {
     });
 
     // Invalidate caches
-    await cacheDel(`user:favorites:${userId}`);
-    await cacheDel(`workout:${workoutId}:${userId}`);
+    // await cacheDel(`user:favorites:${userId}`); // Redis disabled
+    // await cacheDel(`workout:${workoutId}:${userId}`); // Redis disabled
   }
 
   async getFavoriteWorkouts(userId: string): Promise<Workout[]> {
     const cacheKey = `user:favorites:${userId}`;
-    const cached = await cacheGet(cacheKey);
+    // const cached = await cacheGet(cacheKey);
+    const cached = null; // Redis disabled
     
     if (cached) {
       return cached;
@@ -499,7 +501,7 @@ export class WorkoutService {
       throw new AppError('User not found', 404);
     }
 
-    await cacheSet(cacheKey, user.favoriteWorkouts, 3600);
+    // await cacheSet(cacheKey, user.favoriteWorkouts, 3600); // Redis disabled
     return user.favoriteWorkouts;
   }
 
@@ -536,8 +538,8 @@ export class WorkoutService {
     }
 
     // Invalidate workout cache
-    await cacheDel(`workout:${workoutId}:${userId}`);
-    await cacheDel(`workout:${workoutId}:anonymous`);
+    // await cacheDel(`workout:${workoutId}:${userId}`); // Redis disabled
+    // await cacheDel(`workout:${workoutId}:anonymous`); // Redis disabled
   }
 
   async startWorkoutSession(workoutId: string, userId: string): Promise<WorkoutSession> {

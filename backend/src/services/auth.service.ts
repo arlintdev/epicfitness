@@ -6,7 +6,7 @@ import { getPrismaClient } from '../utils/database';
 import { config } from '../config/config';
 import { AppError } from '../middleware/errorHandler';
 import { logger } from '../utils/logger';
-import { cacheSet, cacheGet, cacheDel } from '../utils/redis';
+// Redis removed for deployment - caching disabled
 
 interface RegisterData {
   email: string;
@@ -140,11 +140,11 @@ export class AuthService {
       const decoded = jwt.verify(refreshToken, config.jwt.refreshSecret) as any;
 
       // Check if refresh token exists in cache
-      const cachedToken = await cacheGet(`refresh_token:${decoded.userId}`);
-
-      if (!cachedToken || cachedToken !== refreshToken) {
-        throw new AppError('Invalid refresh token', 401);
-      }
+      // Redis disabled - skipping cache check
+      // const cachedToken = await cacheGet(`refresh_token:${decoded.userId}`);
+      // if (!cachedToken || cachedToken !== refreshToken) {
+      //   throw new AppError('Invalid refresh token', 401);
+      // }
 
       // Check if user exists
       const user = await this.prisma.user.findUnique({
@@ -169,8 +169,9 @@ export class AuthService {
   }
 
   async logout(userId: string): Promise<void> {
-    await cacheDel(`refresh_token:${userId}`);
-    await cacheDel(`user_session:${userId}`);
+    // Redis disabled - cache deletion skipped
+    // await cacheDel(`refresh_token:${userId}`);
+    // await cacheDel(`user_session:${userId}`);
     logger.info(`User logged out: ${userId}`);
   }
 
@@ -200,8 +201,9 @@ export class AuthService {
     });
 
     // Invalidate all sessions
-    await cacheDel(`refresh_token:${userId}`);
-    await cacheDel(`user_session:${userId}`);
+    // Redis disabled - cache deletion skipped
+    // await cacheDel(`refresh_token:${userId}`);
+    // await cacheDel(`user_session:${userId}`);
 
     logger.info(`Password changed for user: ${userId}`);
   }
@@ -261,8 +263,9 @@ export class AuthService {
     });
 
     // Invalidate all sessions
-    await cacheDel(`refresh_token:${user.id}`);
-    await cacheDel(`user_session:${user.id}`);
+    // Redis disabled - cache deletion skipped
+    // await cacheDel(`refresh_token:${user.id}`);
+    // await cacheDel(`user_session:${user.id}`);
 
     logger.info(`Password reset successful for: ${user.email}`);
   }
@@ -304,8 +307,9 @@ export class AuthService {
   }
 
   private async cacheUserSession(userId: string, refreshToken: string): Promise<void> {
-    const ttl = 7 * 24 * 60 * 60; // 7 days in seconds
-    await cacheSet(`refresh_token:${userId}`, refreshToken, ttl);
-    await cacheSet(`user_session:${userId}`, { lastActivity: new Date() }, ttl);
+    // Redis disabled - cache storage skipped
+    // const ttl = 7 * 24 * 60 * 60; // 7 days in seconds
+    // await cacheSet(`refresh_token:${userId}`, refreshToken, ttl);
+    // await cacheSet(`user_session:${userId}`, { lastActivity: new Date() }, ttl);
   }
 }
