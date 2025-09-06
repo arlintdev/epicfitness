@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: epicfitness-backend
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install && npx prisma generate
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        value: postgresql://neondb_owner:npg_jNmVzlJx6oG1@ep-misty-bread-afq5c3li.us-west-2.aws.neon.tech/neondb?sslmode=require
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: FRONTEND_URL
+        value: https://epicfitness.arlint.dev
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: API_VERSION
+        value: v1
+      - key: JWT_EXPIRES_IN
+        value: 15m
+      - key: JWT_REFRESH_EXPIRES_IN
+        value: 7d

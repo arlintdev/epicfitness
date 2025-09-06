@@ -8,9 +8,11 @@
     "build": "tsc",
     "start": "tsx src/index.ts",
     "start:dist": "node dist/index.js",
+    "start:prod": "npm run build && node dist/index.js",
     "test": "jest",
     "lint": "eslint src --ext ts",
     "db:migrate": "prisma migrate dev",
+    "db:migrate:deploy": "prisma migrate deploy",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed-simple.ts",
     "db:studio": "prisma studio"
