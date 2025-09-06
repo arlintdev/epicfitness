@@ -15,9 +15,6 @@ const envSchema = z.object({
   JWT_EXPIRES_IN: z.string().default('15m'),
   JWT_REFRESH_EXPIRES_IN: z.string().default('7d'),
 
-  // Redis
-  REDIS_URL: z.string().default('redis://localhost:6379'),
-
   // Email
   SMTP_HOST: z.string().optional(),
   SMTP_PORT: z.string().transform(Number).optional(),
@@ -67,9 +64,6 @@ export const config = {
     expiresIn: env.JWT_EXPIRES_IN,
     refreshExpiresIn: env.JWT_REFRESH_EXPIRES_IN,
   },
-
-  // Redis
-  redisUrl: env.REDIS_URL,
 
   // Email
   email: {
