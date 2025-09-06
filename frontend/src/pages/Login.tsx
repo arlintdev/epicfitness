@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { motion } from 'framer-motion';
-import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaDumbbell, FaSignInAlt, FaUser, FaInstagram, FaGoogle } from 'react-icons/fa';
+import { FaLock, FaEye, FaEyeSlash, FaDumbbell, FaSignInAlt, FaUser, FaInstagram, FaGoogle } from 'react-icons/fa';
 import { useAuthStore } from '../store/authStore';
 import toast from 'react-hot-toast';
 
@@ -47,10 +47,6 @@ export default function Login() {
     }
   };
 
-  const handleInstagramLogin = () => {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5050/api/v1';
-    window.location.href = `${apiUrl}/auth/instagram`;
-  };
 
   // Demo credentials hint
   const fillDemoCredentials = () => {

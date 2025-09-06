@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi } from '../api/admin';
-import type { DashboardStats, User, AdminWorkout } from '../api/admin';
+import type { User, AdminWorkout } from '../api/admin';
 import { useAuthStore } from '../store/authStore';
 import { Navigate } from 'react-router-dom';
 import {
@@ -41,14 +41,14 @@ export default function AdminDashboard() {
   });
 
   // Users query
-  const { data: usersData, isLoading: usersLoading } = useQuery({
+  const { data: usersData } = useQuery({
     queryKey: ['admin-users', userPage, userSearch],
     queryFn: () => adminApi.getUsers({ page: userPage, search: userSearch }),
     enabled: activeTab === 'users'
   });
 
   // Workouts query
-  const { data: workoutsData, isLoading: workoutsLoading } = useQuery({
+  const { data: workoutsData } = useQuery({
     queryKey: ['admin-workouts', workoutPage, workoutSearch],
     queryFn: () => adminApi.getWorkouts({ page: workoutPage, search: workoutSearch }),
     enabled: activeTab === 'workouts'

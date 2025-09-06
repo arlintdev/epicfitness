@@ -8,7 +8,6 @@ import {
   FaBolt,
   FaFire,
   FaDumbbell,
-  FaRunning,
   FaMedal,
   FaChartLine,
   FaCalendarAlt,
@@ -16,7 +15,6 @@ import {
   FaRuler,
   FaBirthdayCake,
   FaVenusMars,
-  FaEnvelope,
   FaUserCircle,
   FaSpinner,
   FaTachometerAlt
@@ -80,7 +78,7 @@ const availableEquipmentOptions = [
 ];
 
 export default function Profile() {
-  const { user, updateUser } = useAuthStore();
+  const { updateUser } = useAuthStore();
   const { setLudicrousMode } = useLudicrous();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -249,7 +247,7 @@ export default function Profile() {
 
   return (
     <div className={`max-w-4xl mx-auto px-4 py-8 ${isLudicrous ? 'ludicrous-active' : ''}`}>
-      <style jsx>{`
+      <style>{`
         @keyframes shake {
           0%, 100% { transform: translateX(0); }
           25% { transform: translateX(-10px); }

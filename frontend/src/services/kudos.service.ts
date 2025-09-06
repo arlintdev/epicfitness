@@ -1,14 +1,16 @@
 import api from '../lib/api';
 
-export enum KudosType {
-  WORKOUT_START = 'WORKOUT_START',
-  EXERCISE_COMPLETE = 'EXERCISE_COMPLETE',
-  REST_START = 'REST_START',
-  REST_COMPLETE = 'REST_COMPLETE',
-  WORKOUT_COMPLETE = 'WORKOUT_COMPLETE',
-  NEXT_EXERCISE = 'NEXT_EXERCISE',
-  PERSONAL_RECORD = 'PERSONAL_RECORD',
-}
+export const KudosType = {
+  WORKOUT_START: 'WORKOUT_START',
+  EXERCISE_COMPLETE: 'EXERCISE_COMPLETE',
+  REST_START: 'REST_START',
+  REST_COMPLETE: 'REST_COMPLETE',
+  WORKOUT_COMPLETE: 'WORKOUT_COMPLETE',
+  NEXT_EXERCISE: 'NEXT_EXERCISE',
+  PERSONAL_RECORD: 'PERSONAL_RECORD',
+} as const;
+
+export type KudosType = typeof KudosType[keyof typeof KudosType];
 
 class KudosService {
   private cache: Map<KudosType, string[]> = new Map();
@@ -46,7 +48,7 @@ class KudosService {
   }
 
   private getDefaultPhrase(type: KudosType): string {
-    const defaults: Record<KudosType, string> = {
+    const defaults: Record<string, string> = {
       [KudosType.WORKOUT_START]: "Let's get this workout started! 💪",
       [KudosType.WORKOUT_COMPLETE]: "Workout complete! Amazing job! 🎉",
       [KudosType.EXERCISE_COMPLETE]: "Exercise complete! Well done!",

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -11,14 +11,12 @@ import {
   FaChevronLeft, 
   FaClock, 
   FaFireAlt,
-  FaDumbbell,
   FaCheckCircle,
   FaTrophy,
   FaExclamationCircle,
   FaTimes
 } from 'react-icons/fa';
 import api from '../lib/api';
-import { useAuthStore } from '../store/authStore';
 import toast from 'react-hot-toast';
 import { kudosService, KudosType } from '../services/kudos.service';
 
@@ -65,7 +63,6 @@ interface ExerciseStep {
 export default function WorkoutSession() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user } = useAuthStore();
   
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [currentSet, setCurrentSet] = useState(1);

@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Calendar, TrendingUp, Flame, Clock, Award, ChevronRight, BarChart3, Activity, Target, Users } from 'lucide-react';
-import { Line, Bar } from 'react-chartjs-2';
+import { Calendar, Flame, Clock, Award, ChevronRight, BarChart3, Activity, Target, Users } from 'lucide-react';
+import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale,

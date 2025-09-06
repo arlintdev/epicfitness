@@ -19,7 +19,6 @@ import Progress from './pages/Progress';
 import AuthCallback from './pages/AuthCallback';
 import Schedule from './pages/Schedule';
 import Programs from './pages/Programs';
-import WorkoutsAndSchedule from './pages/WorkoutsAndSchedule';
 
 // Components
 import Layout from './components/common/Layout';

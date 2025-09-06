@@ -5,7 +5,6 @@ import {
   FaDumbbell,
   FaClock,
   FaCalendarAlt,
-  FaChartLine,
   FaPlay,
   FaCheck,
   FaSpinner,
@@ -67,7 +66,7 @@ export default function Programs() {
       const response = await api.post(`/programs/${programId}/enroll`);
       return response.data;
     },
-    onSuccess: (data, programId) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['programs'] });
       queryClient.invalidateQueries({ queryKey: ['enrolled-programs'] });
       toast.success('Successfully enrolled in program!');

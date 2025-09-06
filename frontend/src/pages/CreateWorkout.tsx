@@ -14,10 +14,7 @@ import {
   FaGripVertical,
   FaClock,
   FaFire,
-  FaListOl,
   FaSpinner,
-  FaCheckCircle,
-  FaTimes,
   FaInfoCircle,
 } from 'react-icons/fa';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';

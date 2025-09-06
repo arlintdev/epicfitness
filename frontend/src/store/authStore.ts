@@ -10,6 +10,9 @@ interface User {
   lastName?: string;
   role: 'USER' | 'TRAINER' | 'ADMIN' | 'SUPER_ADMIN';
   avatar?: string;
+  preferences?: {
+    appMode?: string;
+  };
 }
 
 interface AuthState {

@@ -43,7 +43,6 @@ export default function ExerciseModal({ isOpen, onClose, onExerciseCreated }: Ex
     handleSubmit,
     formState: { errors },
     setValue,
-    watch,
     reset
   } = useForm<ExerciseFormData>({
     resolver: zodResolver(exerciseSchema),

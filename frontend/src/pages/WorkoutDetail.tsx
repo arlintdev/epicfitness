@@ -13,11 +13,9 @@ import {
   FaPlay,
   FaChevronLeft,
   FaUsers,
-  FaCheckCircle,
   FaSpinner,
   FaExclamationCircle,
   FaUser,
-  FaTrophy,
   FaListUl,
   FaInfoCircle,
 } from 'react-icons/fa';
@@ -119,7 +117,7 @@ export default function WorkoutDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { user, isAuthenticated } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
   const [activeTab, setActiveTab] = useState<'exercises' | 'instructions'>('exercises');
   const [expandedExercise, setExpandedExercise] = useState<string | null>(null);
   const [localIsFavorited, setLocalIsFavorited] = useState<boolean>(false);

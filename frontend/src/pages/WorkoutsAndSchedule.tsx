@@ -3,18 +3,17 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
-import format from 'date-fns/format';
-import parse from 'date-fns/parse';
-import startOfWeek from 'date-fns/startOfWeek';
-import getDay from 'date-fns/getDay';
-import enUS from 'date-fns/locale/en-US';
+import { format } from 'date-fns/format';
+import { parse } from 'date-fns/parse';
+import { startOfWeek } from 'date-fns/startOfWeek';
+import { getDay } from 'date-fns/getDay';
+import { enUS } from 'date-fns/locale/en-US';
 import {
   FaDumbbell,
   FaSearch,
   FaFilter,
   FaClock,
   FaFire,
-  FaChartLine,
   FaTimes,
   FaSpinner,
   FaExclamationCircle,
@@ -22,10 +21,6 @@ import {
   FaCalendarAlt,
   FaPlus,
   FaPlay,
-  FaEdit,
-  FaCheck,
-  FaList,
-  FaCalendarWeek,
 } from 'react-icons/fa';
 import api from '../lib/api';
 import { useAuthStore } from '../store/authStore';
@@ -33,6 +28,7 @@ import { userApi } from '../api/user';
 import toast from 'react-hot-toast';
 import ScheduleWorkoutModal from '../components/ScheduleWorkoutModal';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
+import '../styles/calendar.css';
 
 // Calendar Setup
 const locales = {
@@ -104,10 +100,10 @@ const difficultyColors = {
   INTERMEDIATE: 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200',
   ADVANCED: 'bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200',
   EXPERT: 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200',
-  EASY: 'bg-green-100 text-green-800',
-  MEDIUM: 'bg-yellow-100 text-yellow-800',
-  HARD: 'bg-orange-100 text-orange-800',
-  EXTREME: 'bg-red-100 text-red-800',
+  EASY: 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200',
+  MEDIUM: 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200',
+  HARD: 'bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200',
+  EXTREME: 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200',
 };
 
 const statusColors = {
@@ -225,7 +221,7 @@ export default function WorkoutsAndSchedule() {
       const response = await api.post(`/schedules/${scheduleId}/start`);
       return response.data.data;
     },
-    onSuccess: (session) => {
+    onSuccess: () => {
       toast.success('Workout started!');
       window.location.href = `/workout/${selectedSchedule?.workoutId}/session`;
     },
@@ -348,8 +344,8 @@ export default function WorkoutsAndSchedule() {
               onClick={() => setShowSchedule(!showSchedule)}
               className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${
                 showSchedule
-                  ? 'bg-primary-500 text-white'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                  ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
             >
               <FaCalendarAlt />
@@ -358,7 +354,7 @@ export default function WorkoutsAndSchedule() {
             {user && (
               <button
                 onClick={() => setShowModal(true)}
-                className="btn-primary flex items-center gap-2"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
               >
                 <FaPlus />
                 Schedule Workout
@@ -412,7 +408,7 @@ export default function WorkoutsAndSchedule() {
                       )}
                     </div>
                     <span className={`inline-block mt-2 px-2 py-1 rounded-full text-xs ${
-                      difficultyColors[schedule.workout.difficulty as keyof typeof difficultyColors]
+                      difficultyColors[schedule.workout.difficulty as keyof typeof difficultyColors] || difficultyColors.INTERMEDIATE
                     }`}>
                       {schedule.workout.difficulty}
                     </span>
@@ -424,7 +420,7 @@ export default function WorkoutsAndSchedule() {
 
           {/* Calendar View */}
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-            <div className="h-[400px]">
+            <div className="h-[500px]">
               {schedulesLoading ? (
                 <div className="flex justify-center items-center h-full">
                   <FaSpinner className="animate-spin h-8 w-8 text-primary-500" />
@@ -444,7 +440,6 @@ export default function WorkoutsAndSchedule() {
                   onSelectEvent={handleSelectEvent}
                   selectable
                   eventPropGetter={eventStyleGetter}
-                  className="dark:text-white"
                 />
               )}
             </div>
@@ -631,7 +626,7 @@ export default function WorkoutsAndSchedule() {
 
                     <div className="flex items-center justify-between mb-3">
                       <span className={`px-2 py-1 rounded-full text-xs ${
-                        difficultyColors[workout.difficulty]
+                        difficultyColors[workout.difficulty] || difficultyColors.INTERMEDIATE
                       }`}>
                         {workout.difficulty}
                       </span>
@@ -652,7 +647,7 @@ export default function WorkoutsAndSchedule() {
                     <div className="flex gap-2">
                       <Link
                         to={`/workout/${workout.id}`}
-                        className="flex-1 btn-primary text-center text-sm"
+                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-center text-sm transition-colors"
                       >
                         View Details
                       </Link>
@@ -687,7 +682,7 @@ export default function WorkoutsAndSchedule() {
             </p>
             <button
               onClick={clearFilters}
-              className="btn-primary"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
             >
               Clear Filters
             </button>
@@ -745,7 +740,7 @@ export default function WorkoutsAndSchedule() {
               )}
               <div className="flex items-center gap-2">
                 <span className={`px-3 py-1 rounded-full text-sm ${
-                  difficultyColors[selectedSchedule.workout.difficulty as keyof typeof difficultyColors]
+                  difficultyColors[selectedSchedule.workout.difficulty as keyof typeof difficultyColors] || difficultyColors.INTERMEDIATE
                 }`}>
                   {selectedSchedule.workout.difficulty}
                 </span>
@@ -764,7 +759,7 @@ export default function WorkoutsAndSchedule() {
               <div className="flex gap-3">
                 <button
                   onClick={() => startMutation.mutate(selectedSchedule.id)}
-                  className="flex-1 btn-primary"
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
                   disabled={startMutation.isPending}
                 >
                   {startMutation.isPending ? (
