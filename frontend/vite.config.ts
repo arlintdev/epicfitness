@@ -6,7 +6,5 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5174
-  },
-  // Set base path for deployment
-  base: '/epicfitness/'
+  }
 })
