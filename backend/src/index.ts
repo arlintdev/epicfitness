@@ -48,7 +48,12 @@ app.use(compression());
 
 // CORS configuration for production
 const corsOrigins = config.isProduction 
-  ? ['https://epicfitness.pages.dev', 'https://epicfitness.netlify.app', config.frontendUrl]
+  ? [
+      'https://yourusername.github.io', // GitHub Pages
+      'https://epicfitness.pages.dev',
+      'https://epicfitness.netlify.app',
+      config.frontendUrl
+    ]
   : [config.frontendUrl, 'http://localhost:5173', 'http://localhost:5174'];
 
 app.use(cors({

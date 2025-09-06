@@ -3,7 +3,7 @@
 This guide will help you deploy the Epic Fitness Platform with a free PostgreSQL database and free hosting.
 
 ## Services Used
-- **Frontend**: Cloudflare Pages or Netlify (free)
+- **Frontend**: GitHub Pages (free, automatic deployment)
 - **Backend**: Render.com (free tier)
 - **Database**: Neon.tech (free PostgreSQL)
 
@@ -48,55 +48,45 @@ This guide will help you deploy the Epic Fitness Platform with a free PostgreSQL
 
 7. Click "Create Web Service" and wait for deployment
 
-## Step 3: Deploy Frontend to Cloudflare Pages
+## Step 3: Deploy Frontend to GitHub Pages
 
-### Option A: Using Cloudflare Pages (Recommended)
+### Automatic Deployment (Recommended)
+The repository includes GitHub Actions that will automatically deploy your frontend to GitHub Pages whenever you push to the main branch.
 
-1. Build your frontend locally:
+1. Go to your repository on GitHub
+2. Navigate to Settings > Pages
+3. Under "Source", select "GitHub Actions"
+4. Push your code to trigger deployment:
+   ```bash
+   git push origin main
+   ```
+5. Your site will be available at: `https://YOUR_USERNAME.github.io/epicfitness/`
+
+### Manual Deployment Option
+If you prefer to deploy manually:
+
+1. Install gh-pages:
    ```bash
    cd frontend
-   npm install
-   npm run build
+   npm install --save-dev gh-pages
    ```
 
-2. Go to [Cloudflare Pages](https://pages.cloudflare.com)
-3. Sign up/login and click "Create a project"
-4. Choose "Connect to Git" and connect your GitHub repository
-5. Configure your build:
-   - **Project name**: epicfitness
-   - **Production branch**: main
-   - **Framework preset**: Create React App
-   - **Build command**: `npm run build`
-   - **Build output directory**: `dist`
-   - **Root directory**: `frontend`
-
-6. Add Environment Variable:
-   - `VITE_API_URL`: https://epicfitness-backend.onrender.com/api/v1
-
-7. Click "Save and Deploy"
-
-### Option B: Using Netlify
-
-1. Build your frontend:
+2. Build and deploy:
    ```bash
-   cd frontend
-   npm install
-   npm run build
+   npm run deploy
    ```
 
-2. Go to [Netlify](https://app.netlify.com)
-3. Drag and drop your `frontend/dist` folder to deploy
-4. Go to Site Settings > Domain Management
-5. Change site name to `epicfitness`
-6. Add Environment Variable in Site Settings > Environment Variables:
-   - `VITE_API_URL`: https://epicfitness-backend.onrender.com/api/v1
+3. Your site will be available at: `https://YOUR_USERNAME.github.io/epicfitness/`
 
 ## Step 4: Update Backend CORS
 
-Once your frontend is deployed, update the backend environment variable:
-1. Go to your Render dashboard
-2. Update the `FRONTEND_URL` to your actual frontend URL
-3. The backend will automatically redeploy
+Once your frontend is deployed, you need to update the backend to allow your GitHub Pages URL:
+
+1. Edit `backend/src/index.ts` and replace `'https://yourusername.github.io'` with your actual GitHub Pages URL
+2. Commit and push the change
+3. The backend on Render will automatically redeploy with the new CORS settings
+
+Alternatively, set the `FRONTEND_URL` environment variable in Render to your GitHub Pages URL.
 
 ## Step 5: Test Your Deployment
 

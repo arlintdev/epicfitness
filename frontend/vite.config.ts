@@ -6,5 +6,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5174
-  }
+  },
+  // For GitHub Pages deployment
+  base: process.env.NODE_ENV === 'production' ? '/epicfitness/' : '/'
 })
