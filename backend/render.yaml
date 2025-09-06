@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: epicfitness-backend
+    runtime: node
+    buildCommand: npm install && npx prisma generate && npx prisma db push
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: FRONTEND_URL
+        value: https://epicfitness.pages.dev
+      - key: SESSION_SECRET
+        generateValue: true

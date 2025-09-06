@@ -17,7 +17,7 @@ import { notFoundHandler } from './middleware/notFoundHandler';
 import { rateLimiter } from './middleware/rateLimiter';
 import { logger } from './utils/logger';
 import { connectDatabase } from './utils/database';
-import { connectRedis } from './utils/redis';
+// import { connectRedis } from './utils/redis'; // Redis removed for deployment
 
 import authRoutes from './routes/auth.routes';
 import userRoutes from './routes/user.routes';
@@ -45,8 +45,20 @@ app.use(helmet({
   contentSecurityPolicy: false,
 }));
 app.use(compression());
+
+// CORS configuration for production
+const corsOrigins = config.isProduction 
+  ? ['https://epicfitness.pages.dev', 'https://epicfitness.netlify.app', config.frontendUrl]
+  : [config.frontendUrl, 'http://localhost:5173', 'http://localhost:5174'];
+
 app.use(cors({
-  origin: config.frontendUrl,
+  origin: (origin, callback) => {
+    if (!origin || corsOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
 }));
 app.use(express.json({ limit: '10mb' }));
@@ -132,9 +144,9 @@ const startServer = async () => {
     await connectDatabase();
     logger.info('Database connected successfully');
 
-    // Connect to Redis
-    await connectRedis();
-    logger.info('Redis connected successfully');
+    // Redis removed for deployment - not needed
+    // await connectRedis();
+    // logger.info('Redis connected successfully');
 
     // Start HTTP server
     httpServer.listen(config.port, () => {

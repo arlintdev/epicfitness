@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js",
+    "start": "tsx src/index.ts",
+    "start:dist": "node dist/index.js",
     "test": "jest",
     "lint": "eslint src --ext ts",
     "db:migrate": "prisma migrate dev",
@@ -36,7 +37,6 @@
     "nodemailer": "^6.9.8",
     "passport": "^0.7.0",
     "passport-facebook": "^3.0.0",
-    "redis": "^4.6.12",
     "socket.io": "^4.6.0",
     "winston": "^3.11.0",
     "zod": "^3.22.4"
