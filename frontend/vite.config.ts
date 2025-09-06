@@ -7,6 +7,6 @@ export default defineConfig({
   server: {
     port: 5174
   },
-  // For GitHub Pages deployment
-  base: process.env.NODE_ENV === 'production' ? '/epicfitness/' : '/'
+  // Set base path for deployment
+  base: '/epicfitness/'
 })
