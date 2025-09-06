@@ -1,0 +1,596 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User Models
+model User {
+  id                String          @id @default(cuid())
+  email             String          @unique
+  username          String          @unique
+  password          String?         // Optional for social logins
+  firstName         String?
+  lastName          String?
+  bio               String?
+  avatar            String?         @db.Text // Base64 encoded image
+  role              UserRole        @default(USER)
+  isEmailVerified   Boolean         @default(false)
+  emailVerificationToken String?
+  passwordResetToken String?
+  passwordResetExpires DateTime?
+  
+  // Social login fields
+  instagramId       String?         @unique
+  instagramUsername String?
+  instagramAvatar   String?
+  provider          AuthProvider?   @default(LOCAL)
+  
+  // Profile
+  dateOfBirth       DateTime?
+  gender            Gender?
+  height            Float?          // in cm
+  weight            Float?          // in kg
+  fitnessLevel      FitnessLevel    @default(BEGINNER)
+  goals             String[]        // Array of fitness goals
+  availableEquipment String[]       // Array of equipment user has access to
+  
+  // Settings
+  preferences       Json?           // User preferences
+  notificationsEnabled Boolean      @default(true)
+  darkMode          Boolean         @default(false)
+  
+  // Timestamps
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  lastLoginAt       DateTime?
+  
+  // Relations
+  workouts          Workout[]       @relation("CreatedWorkouts")
+  favoriteWorkouts  Workout[]       @relation("FavoriteWorkouts")
+  programs          Program[]       @relation("CreatedPrograms")
+  enrolledPrograms  ProgramEnrollment[]
+  progress          Progress[]
+  achievements      UserAchievement[]
+  comments          Comment[]
+  ratings           Rating[]
+  bodyMeasurements  BodyMeasurement[]
+  workoutSessions   WorkoutSession[]
+  scheduledWorkouts WorkoutSchedule[]
+  followers         Follow[]        @relation("Following")
+  following         Follow[]        @relation("Followers")
+  posts             Post[]
+  notifications     Notification[]
+  
+  @@index([email])
+  @@index([username])
+}
+
+model Workout {
+  id                String          @id @default(cuid())
+  title             String
+  slug              String          @unique
+  description       String          @db.Text // Markdown text
+  image             String?         @db.Text // Base64 encoded image
+  videoUrl          String?
+  difficulty        Difficulty
+  duration          Int             // in minutes
+  caloriesBurn      Int?
+  equipment         String[]
+  targetMuscles     MuscleGroup[]
+  
+  // Metadata
+  isPublic          Boolean         @default(true)
+  featured          Boolean         @default(false)
+  views             Int             @default(0)
+  
+  // Timestamps
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  
+  // Relations
+  creatorId         String
+  creator           User            @relation("CreatedWorkouts", fields: [creatorId], references: [id], onDelete: Cascade)
+  exercises         WorkoutExercise[]
+  favoritedBy       User[]          @relation("FavoriteWorkouts")
+  programs          ProgramWorkout[]
+  sessions          WorkoutSession[]
+  schedules         WorkoutSchedule[]
+  comments          Comment[]
+  ratings           Rating[]
+  tags              Tag[]
+  
+  @@index([slug])
+  @@index([creatorId])
+  @@index([featured])
+}
+
+model Exercise {
+  id                String          @id @default(cuid())
+  name              String
+  slug              String          @unique
+  description       String          @db.Text
+  instructions      String[]        // Step-by-step instructions
+  image             String?         @db.Text
+  videoUrl          String?
+  primaryMuscle     MuscleGroup
+  secondaryMuscles  MuscleGroup[]
+  equipment         String?
+  category          ExerciseCategory
+  tips              String[]        // Form tips
+  commonMistakes    String[]
+  
+  // Timestamps
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  
+  // Relations
+  workoutExercises  WorkoutExercise[]
+  progressRecords   Progress[]
+  
+  @@index([slug])
+  @@index([primaryMuscle])
+}
+
+model WorkoutExercise {
+  id                String          @id @default(cuid())
+  workoutId         String
+  exerciseId        String
+  order             Int
+  sets              Int?
+  reps              String?         // Can be range like "8-12"
+  duration          Int?            // in seconds
+  restTime          Int?            // in seconds
+  notes             String?
+  
+  workout           Workout         @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+  exercise          Exercise        @relation(fields: [exerciseId], references: [id])
+  
+  @@unique([workoutId, order])
+  @@index([workoutId])
+  @@index([exerciseId])
+}
+
+model Program {
+  id                String          @id @default(cuid())
+  title             String
+  slug              String          @unique
+  description       String          @db.Text
+  image             String?         @db.Text
+  difficulty        Difficulty
+  duration          Int             // in weeks
+  daysPerWeek       Int
+  goal              String
+  requirements      String[]
+  
+  // Metadata
+  isPublic          Boolean         @default(true)
+  featured          Boolean         @default(false)
+  price             Float?          @default(0)
+  
+  // Timestamps
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  
+  // Relations
+  creatorId         String
+  creator           User            @relation("CreatedPrograms", fields: [creatorId], references: [id])
+  workouts          ProgramWorkout[]
+  enrollments       ProgramEnrollment[]
+  tags              Tag[]
+  
+  @@index([slug])
+  @@index([creatorId])
+}
+
+model ProgramWorkout {
+  id                String          @id @default(cuid())
+  programId         String
+  workoutId         String
+  week              Int
+  day               Int
+  order             Int
+  
+  program           Program         @relation(fields: [programId], references: [id], onDelete: Cascade)
+  workout           Workout         @relation(fields: [workoutId], references: [id])
+  
+  @@unique([programId, week, day, order])
+  @@index([programId])
+  @@index([workoutId])
+}
+
+model ProgramEnrollment {
+  id                String          @id @default(cuid())
+  userId            String
+  programId         String
+  startDate         DateTime
+  endDate           DateTime?
+  status            EnrollmentStatus @default(ACTIVE)
+  completedWeeks    Int             @default(0)
+  completedWorkouts Int             @default(0)
+  
+  // Timestamps
+  enrolledAt        DateTime        @default(now())
+  completedAt       DateTime?
+  
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  program           Program         @relation(fields: [programId], references: [id])
+  
+  @@unique([userId, programId])
+  @@index([userId])
+  @@index([programId])
+}
+
+model Progress {
+  id                String          @id @default(cuid())
+  userId            String
+  exerciseId        String
+  date              DateTime
+  sets              Int
+  reps              Int[]
+  weight            Float[]         // in kg
+  duration          Int?            // in seconds
+  distance          Float?          // in km
+  notes             String?
+  personalRecord    Boolean         @default(false)
+  
+  // Timestamps
+  createdAt         DateTime        @default(now())
+  
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exercise          Exercise        @relation(fields: [exerciseId], references: [id])
+  
+  @@index([userId, exerciseId])
+  @@index([date])
+}
+
+model WorkoutSession {
+  id                String          @id @default(cuid())
+  userId            String
+  workoutId         String
+  startTime         DateTime
+  endTime           DateTime?
+  duration          Int?            // in minutes
+  caloriesBurned    Int?
+  notes             String?
+  completed         Boolean         @default(false)
+  scheduleId        String?         // Link to scheduled workout
+  
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workout           Workout         @relation(fields: [workoutId], references: [id])
+  schedule          WorkoutSchedule? @relation(fields: [scheduleId], references: [id])
+  
+  @@index([userId])
+  @@index([workoutId])
+  @@index([scheduleId])
+}
+
+model WorkoutSchedule {
+  id                String          @id @default(cuid())
+  userId            String
+  workoutId         String
+  scheduledDate     DateTime
+  scheduledTime     String?         // Optional time (e.g., "14:30")
+  duration          Int             // Expected duration in minutes
+  
+  // Status tracking
+  status            ScheduleStatus  @default(SCHEDULED)
+  
+  // Reminder settings
+  reminderEnabled   Boolean         @default(true)
+  reminderTime      Int?            @default(30) // Minutes before workout
+  reminderSent      Boolean         @default(false)
+  
+  // Notes
+  notes             String?
+  
+  // Recurrence
+  isRecurring       Boolean         @default(false)
+  recurrenceRule    String?         // RRULE format for recurring events
+  recurrenceEnd     DateTime?       // When recurrence ends
+  parentScheduleId  String?         // For recurring instances
+  
+  // Timestamps
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  
+  // Relations
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workout           Workout         @relation(fields: [workoutId], references: [id])
+  sessions          WorkoutSession[]
+  parentSchedule    WorkoutSchedule? @relation("RecurringSchedule", fields: [parentScheduleId], references: [id])
+  childSchedules    WorkoutSchedule[] @relation("RecurringSchedule")
+  
+  @@index([userId, scheduledDate])
+  @@index([workoutId])
+  @@index([status])
+}
+
+model BodyMeasurement {
+  id                String          @id @default(cuid())
+  userId            String
+  date              DateTime
+  weight            Float?          // in kg
+  bodyFatPercentage Float?
+  muscleMass        Float?          // in kg
+  
+  // Measurements in cm
+  chest             Float?
+  waist             Float?
+  hips              Float?
+  thighs            Float?
+  arms              Float?
+  neck              Float?
+  
+  // Photos
+  frontPhoto        String?         @db.Text
+  sidePhoto         String?         @db.Text
+  backPhoto         String?         @db.Text
+  
+  notes             String?
+  
+  // Timestamps
+  createdAt         DateTime        @default(now())
+  
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([date])
+}
+
+model Achievement {
+  id                String          @id @default(cuid())
+  name              String
+  description       String
+  icon              String
+  category          AchievementCategory
+  points            Int
+  requirement       Json            // Criteria for earning
+  
+  users             UserAchievement[]
+}
+
+model UserAchievement {
+  id                String          @id @default(cuid())
+  userId            String
+  achievementId     String
+  earnedAt          DateTime        @default(now())
+  
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement       Achievement     @relation(fields: [achievementId], references: [id])
+  
+  @@unique([userId, achievementId])
+  @@index([userId])
+}
+
+model Comment {
+  id                String          @id @default(cuid())
+  content           String          @db.Text
+  userId            String
+  workoutId         String?
+  postId            String?
+  
+  // Timestamps
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workout           Workout?        @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+  post              Post?           @relation(fields: [postId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([workoutId])
+  @@index([postId])
+}
+
+model Rating {
+  id                String          @id @default(cuid())
+  rating            Int             // 1-5
+  userId            String
+  workoutId         String
+  
+  // Timestamps
+  createdAt         DateTime        @default(now())
+  
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workout           Workout         @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, workoutId])
+  @@index([workoutId])
+}
+
+model Follow {
+  id                String          @id @default(cuid())
+  followerId        String
+  followingId       String
+  
+  // Timestamps
+  createdAt         DateTime        @default(now())
+  
+  follower          User            @relation("Followers", fields: [followerId], references: [id], onDelete: Cascade)
+  following         User            @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+  
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+}
+
+model Post {
+  id                String          @id @default(cuid())
+  content           String          @db.Text
+  images            String[]        @db.Text // Array of base64 images
+  userId            String
+  
+  // Timestamps
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comments          Comment[]
+  
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model Notification {
+  id                String          @id @default(cuid())
+  userId            String
+  type              NotificationType
+  title             String
+  message           String
+  data              Json?
+  read              Boolean         @default(false)
+  
+  // Timestamps
+  createdAt         DateTime        @default(now())
+  
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([read])
+}
+
+model Tag {
+  id                String          @id @default(cuid())
+  name              String          @unique
+  workouts          Workout[]
+  programs          Program[]
+}
+
+model KudosPhrase {
+  id                String          @id @default(cuid())
+  phrase            String          @db.Text
+  type              KudosType
+  isActive          Boolean         @default(true)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  
+  @@index([type, isActive])
+}
+
+model MotivationalQuote {
+  id                String          @id @default(cuid())
+  quote             String          @db.Text
+  author            String
+  category          String?         // fitness, perseverance, success, etc.
+  isActive          Boolean         @default(true)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  
+  @@index([isActive])
+}
+
+// Enums
+enum AuthProvider {
+  LOCAL
+  INSTAGRAM
+  FACEBOOK
+  GOOGLE
+}
+
+enum UserRole {
+  USER
+  TRAINER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  PREFER_NOT_TO_SAY
+}
+
+enum FitnessLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+  EXTREME
+}
+
+enum MuscleGroup {
+  CHEST
+  BACK
+  SHOULDERS
+  BICEPS
+  TRICEPS
+  FOREARMS
+  ABS
+  OBLIQUES
+  LOWER_BACK
+  GLUTES
+  QUADRICEPS
+  HAMSTRINGS
+  CALVES
+  NECK
+  FULL_BODY
+}
+
+enum ExerciseCategory {
+  STRENGTH
+  CARDIO
+  FLEXIBILITY
+  BALANCE
+  PLYOMETRIC
+  OLYMPIC
+  BODYWEIGHT
+  MACHINE
+  FREEWEIGHT
+  CABLE
+  BAND
+  MOBILITY
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+enum ScheduleStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  MISSED
+}
+
+enum AchievementCategory {
+  STREAK
+  MILESTONE
+  PERSONAL_RECORD
+  SOCIAL
+  CHALLENGE
+  SPECIAL
+}
+
+enum NotificationType {
+  WORKOUT_REMINDER
+  ACHIEVEMENT_EARNED
+  NEW_FOLLOWER
+  COMMENT
+  PROGRAM_UPDATE
+  SYSTEM
+}
+
+enum KudosType {
+  WORKOUT_START
+  EXERCISE_COMPLETE
+  REST_START
+  REST_COMPLETE
+  WORKOUT_COMPLETE
+  NEXT_EXERCISE
+  PERSONAL_RECORD
+}
