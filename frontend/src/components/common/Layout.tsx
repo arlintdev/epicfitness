@@ -42,12 +42,6 @@ export default function Layout({ children }: LayoutProps) {
                 >
                   Workouts
                 </Link>
-                <Link
-                  to="/programs"
-                  className="text-gray-700 dark:text-gray-300 hover:text-primary-500 px-3 py-2 text-sm font-medium"
-                >
-                  Programs
-                </Link>
                 {isAuthenticated && (
                   <>
                     <Link
@@ -170,13 +164,6 @@ export default function Layout({ children }: LayoutProps) {
               >
                 Workouts
               </Link>
-              <Link
-                to="/programs"
-                className="block text-gray-700 dark:text-gray-300 hover:text-primary-500 px-3 py-2"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Programs
-              </Link>
               {isAuthenticated ? (
                 <>
                   <Link
@@ -277,7 +264,6 @@ export default function Layout({ children }: LayoutProps) {
               <h3 className="font-semibold mb-3">Quick Links</h3>
               <ul className="space-y-2 text-gray-400">
                 <li><Link to="/workouts" className="hover:text-primary-500">Browse Workouts</Link></li>
-                <li><Link to="/programs" className="hover:text-primary-500">Training Programs</Link></li>
                 <li><Link to="/exercises" className="hover:text-primary-500">Exercise Library</Link></li>
               </ul>
             </div>
