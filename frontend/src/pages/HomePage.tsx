@@ -123,6 +123,102 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Meet the Creators Section */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white dark:bg-gray-800">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-display font-bold mb-4 gradient-text">
+              Meet the Epic Team
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+              Combining world-class development with elite fitness expertise
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-12 max-w-5xl mx-auto">
+            {/* Austin Arlint */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+              className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl p-8 shadow-xl"
+            >
+              <div className="flex items-center justify-center mb-6">
+                <div className="w-32 h-32 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+                  <span className="text-4xl font-bold text-white">AA</span>
+                </div>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white text-center mb-2">
+                Austin Arlint
+              </h3>
+              <p className="text-primary-600 dark:text-primary-400 font-semibold text-center mb-4">
+                Epic Developer
+              </p>
+              <p className="text-gray-600 dark:text-gray-400 text-center leading-relaxed">
+                Full-stack wizard and the technical mastermind behind Epic Fitness. Austin transforms 
+                complex fitness tracking needs into elegant, user-friendly solutions. With a passion for 
+                clean code and seamless user experiences, he ensures every feature works flawlessly 
+                to support your fitness journey.
+              </p>
+              <div className="mt-6 flex justify-center space-x-2">
+                <span className="px-3 py-1 bg-blue-200 dark:bg-blue-800 text-blue-800 dark:text-blue-200 rounded-full text-sm">
+                  React Expert
+                </span>
+                <span className="px-3 py-1 bg-purple-200 dark:bg-purple-800 text-purple-800 dark:text-purple-200 rounded-full text-sm">
+                  UI/UX Design
+                </span>
+                <span className="px-3 py-1 bg-indigo-200 dark:bg-indigo-800 text-indigo-800 dark:text-indigo-200 rounded-full text-sm">
+                  Performance
+                </span>
+              </div>
+            </motion.div>
+
+            {/* Casey Keller */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+              className="bg-gradient-to-br from-orange-50 to-red-100 dark:from-orange-900/20 dark:to-red-900/20 rounded-2xl p-8 shadow-xl"
+            >
+              <div className="flex items-center justify-center mb-6">
+                <div className="w-32 h-32 bg-gradient-to-br from-orange-500 to-red-600 rounded-full flex items-center justify-center">
+                  <span className="text-4xl font-bold text-white">CK</span>
+                </div>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white text-center mb-2">
+                Casey Keller
+              </h3>
+              <p className="text-primary-600 dark:text-primary-400 font-semibold text-center mb-4">
+                Epic Body Builder
+              </p>
+              <p className="text-gray-600 dark:text-gray-400 text-center leading-relaxed">
+                Professional bodybuilder and fitness expert bringing years of training experience 
+                to Epic Fitness. Casey designs workout programs that deliver real results, whether 
+                you're a beginner or advanced athlete. His proven methods and deep understanding 
+                of exercise science ensure every workout maximizes your potential.
+              </p>
+              <div className="mt-6 flex justify-center space-x-2">
+                <span className="px-3 py-1 bg-orange-200 dark:bg-orange-800 text-orange-800 dark:text-orange-200 rounded-full text-sm">
+                  IFBB Pro
+                </span>
+                <span className="px-3 py-1 bg-red-200 dark:bg-red-800 text-red-800 dark:text-red-200 rounded-full text-sm">
+                  Nutrition Expert
+                </span>
+                <span className="px-3 py-1 bg-pink-200 dark:bg-pink-800 text-pink-800 dark:text-pink-200 rounded-full text-sm">
+                  Trainer
+                </span>
+              </div>
+            </motion.div>
+          </div>
+
+          <div className="mt-12 text-center">
+            <p className="text-lg text-gray-600 dark:text-gray-400 italic">
+              "Together, we're revolutionizing fitness technology to help you achieve your epic transformation"
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-primary-500">
         <div className="max-w-4xl mx-auto text-center text-white">

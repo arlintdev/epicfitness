@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { FaDumbbell, FaUser, FaSignOutAlt, FaBars, FaTimes, FaSun, FaMoon } from 'react-icons/fa';
 import useDarkMode from '../../hooks/useDarkMode';
+import InstallPrompt from './InstallPrompt';
 
 interface LayoutProps {
   children: ReactNode;
@@ -27,7 +28,7 @@ export default function Layout({ children }: LayoutProps) {
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <Link to="/" className="flex items-center space-x-3 relative z-10">
+              <Link to={isAuthenticated ? "/dashboard" : "/workouts"} className="flex items-center space-x-3 relative z-10">
                 <img 
                   src="/EpicFitnessLogo.png" 
                   alt="Epic Fitness Logo" 
@@ -253,9 +254,12 @@ export default function Layout({ children }: LayoutProps) {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1">
+      <main className="flex-1" style={{ paddingTop: 'calc(64px + env(safe-area-inset-top))' }}>
         {children}
       </main>
+
+      {/* Install Prompt */}
+      <InstallPrompt />
 
       {/* Footer */}
       <footer className="bg-gray-800 text-white py-8 mt-12">
