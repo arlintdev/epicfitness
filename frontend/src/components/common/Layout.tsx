@@ -28,17 +28,19 @@ export default function Layout({ children }: LayoutProps) {
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <Link to={isAuthenticated ? "/dashboard" : "/workouts"} className="flex items-center space-x-3 relative z-10">
-                <img 
-                  src="/EpicFitnessLogo.png" 
-                  alt="Epic Fitness Logo" 
-                  className="h-[80px] w-auto absolute -top-[15px]"
-                />
+              <div className="flex items-center space-x-3 relative z-10">
+                <Link to={isAuthenticated ? "/dashboard" : "/workouts"}>
+                  <img 
+                    src="/EpicFitnessLogo.png" 
+                    alt="Epic Fitness Logo" 
+                    className="h-[80px] w-auto absolute -top-[15px]"
+                  />
+                </Link>
                 <div className="w-[90px]"></div>
-                <span className="font-display font-bold text-xl gradient-text">
+                <Link to="/" className="font-display font-bold text-xl gradient-text hover:opacity-80 transition-opacity">
                   Epic Fitness
-                </span>
-              </Link>
+                </Link>
+              </div>
 
               {/* Desktop Navigation */}
               <div className="hidden md:ml-6 md:flex md:space-x-8">
@@ -254,7 +256,7 @@ export default function Layout({ children }: LayoutProps) {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1" style={{ paddingTop: 'calc(64px + env(safe-area-inset-top))' }}>
+      <main className="flex-1">
         {children}
       </main>
 

@@ -410,7 +410,7 @@ export default function WorkoutDetail() {
                   </div>
                   <div className="flex items-center gap-1">
                     <FaUsers className="w-4 h-4" />
-                    <span>{workout._count?.workoutSessions || workout._count?.sessions || 0} completed</span>
+                    <span>{workout._count?.workoutSessions || workout._count?.sessions || 0}</span>
                   </div>
                 </div>
               </div>
