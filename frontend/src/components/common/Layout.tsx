@@ -23,19 +23,24 @@ export default function Layout({ children }: LayoutProps) {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <header className="bg-white dark:bg-gray-800 shadow-lg">
+      <header className="bg-white dark:bg-gray-800 shadow-lg relative">
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <Link to="/" className="flex items-center space-x-2">
-                <FaDumbbell className="h-8 w-8 text-primary-500" />
+              <Link to="/" className="flex items-center space-x-3 relative z-10">
+                <img 
+                  src="/EpicFitnessLogo.png" 
+                  alt="Epic Fitness Logo" 
+                  className="h-[80px] w-auto absolute -top-[15px]"
+                />
+                <div className="w-[90px]"></div>
                 <span className="font-display font-bold text-xl gradient-text">
                   Epic Fitness
                 </span>
               </Link>
 
               {/* Desktop Navigation */}
-              <div className="hidden md:ml-10 md:flex md:space-x-8">
+              <div className="hidden md:ml-6 md:flex md:space-x-8">
                 {isAuthenticated && (
                   <Link
                     to="/dashboard"

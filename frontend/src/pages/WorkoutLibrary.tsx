@@ -30,7 +30,7 @@ interface Workout {
   image?: string;
   imageUrl?: string;
   duration: number;
-  difficulty: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | 'EXPERT';
+  difficulty: 'EASY' | 'MEDIUM' | 'HARD' | 'EXTREME';
   category?: string;
   targetMuscles: string[];
   equipment: string[];
@@ -38,6 +38,13 @@ interface Workout {
   createdAt: string;
   updatedAt: string;
   averageRating?: number;
+  isPublic?: boolean;
+  creatorId?: string;
+  creator?: {
+    id: string;
+    username: string;
+    role?: string;
+  };
   _count?: {
     sessions: number;
     favoritedBy: number;
@@ -46,37 +53,18 @@ interface Workout {
 }
 
 const difficultyColors = {
-  BEGINNER: 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200',
-  INTERMEDIATE: 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200',
-  ADVANCED: 'bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200',
-  EXPERT: 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200',
+  EASY: 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200',
+  MEDIUM: 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200',
+  HARD: 'bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200',
+  EXTREME: 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200',
 };
 
-const categories = [
-  'All',
-  'Strength',
-  'Cardio',
-  'HIIT',
-  'Yoga',
-  'Flexibility',
-  'CrossFit',
-  'Powerlifting',
-  'Bodybuilding',
-  'Calisthenics',
-];
-
-const muscleGroups = [
-  'Chest',
-  'Back',
-  'Shoulders',
-  'Arms',
-  'Core',
-  'Legs',
-  'Glutes',
-  'Full Body',
-];
-
-const difficulties = ['All', 'BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT'];
+const difficultyGradients = {
+  EASY: 'from-green-400 to-emerald-500',
+  MEDIUM: 'from-yellow-400 to-amber-500',
+  HARD: 'from-orange-400 to-red-500',
+  EXTREME: 'from-red-500 to-purple-600',
+};
 
 export default function WorkoutLibrary() {
   const { user } = useAuthStore();
@@ -88,6 +76,7 @@ export default function WorkoutLibrary() {
   const [selectedMuscleGroups, setSelectedMuscleGroups] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [userEquipment, setUserEquipment] = useState<string[]>([]);
+  const [workoutView, setWorkoutView] = useState<'all' | 'my' | 'community'>('all');
 
   const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
 
@@ -133,6 +122,11 @@ export default function WorkoutLibrary() {
     },
   });
 
+  // Derive filter options from actual workout data
+  const categories = ['All', ...new Set(workouts?.map(w => w.category).filter(Boolean) || [])];
+  const muscleGroups = [...new Set(workouts?.flatMap(w => w.targetMuscles) || [])].sort();
+  const difficulties = ['All', ...new Set(workouts?.map(w => w.difficulty) || [])];
+
   // Check if user has required equipment for a workout
   const hasRequiredEquipment = (workout: Workout) => {
     if (!user || userEquipment.length === 0) return true; // If not logged in or no equipment set, show all
@@ -147,6 +141,18 @@ export default function WorkoutLibrary() {
 
   // Filter workouts locally for immediate feedback
   const filteredWorkouts = workouts?.filter(workout => {
+    // View filtering
+    if (workoutView === 'my') {
+      // Show user's own workouts (both public and private)
+      if (!user || workout.creatorId !== user.id) return false;
+    } else if (workoutView === 'community') {
+      // Show public workouts from non-admin users
+      if (!workout.isPublic || workout.creator?.role === 'ADMIN' || workout.creator?.role === 'SUPER_ADMIN') return false;
+    } else {
+      // 'all' view - show public workouts and user's private workouts
+      if (!workout.isPublic && workout.creatorId !== user?.id) return false;
+    }
+
     const matchesSearch = workout.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           workout.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'All' || workout.category === selectedCategory;
@@ -187,16 +193,52 @@ export default function WorkoutLibrary() {
             {isAdmin ? 'Manage and organize your workout library' : 'Discover workouts tailored to your fitness goals'}
           </p>
         </div>
-        {isAdmin && (
+        {user && (
           <button
             onClick={() => navigate('/create-workout')}
             className="btn-primary flex items-center gap-2"
           >
             <FaPlus />
-            Create New Workout
+            Create Workout
           </button>
         )}
       </div>
+
+      {/* View Tabs */}
+      {user && (
+        <div className="flex gap-2 mb-6">
+          <button
+            onClick={() => setWorkoutView('all')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              workoutView === 'all'
+                ? 'bg-primary-500 text-white'
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+            }`}
+          >
+            All Workouts
+          </button>
+          <button
+            onClick={() => setWorkoutView('my')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              workoutView === 'my'
+                ? 'bg-primary-500 text-white'
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+            }`}
+          >
+            My Workouts
+          </button>
+          <button
+            onClick={() => setWorkoutView('community')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              workoutView === 'community'
+                ? 'bg-primary-500 text-white'
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+            }`}
+          >
+            Community
+          </button>
+        </div>
+      )}
 
       {/* Search and Filter Bar */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 mb-8">
@@ -359,7 +401,7 @@ export default function WorkoutLibrary() {
                 }`}
               >
               {/* Workout Image */}
-              <div className="h-48 bg-gradient-to-br from-primary-400 to-accent-400 relative">
+              <div className={`h-48 bg-gradient-to-br ${difficultyGradients[workout.difficulty]} relative`}>
                 {workout.image || workout.imageUrl ? (
                   <img
                     src={workout.image?.startsWith('data:') ? workout.image : workout.imageUrl}
@@ -371,10 +413,22 @@ export default function WorkoutLibrary() {
                     <FaDumbbell className="h-20 w-20 text-white/50" />
                   </div>
                 )}
-                <div className="absolute top-3 right-3">
+                <div className="absolute top-3 right-3 flex flex-col gap-2 items-end">
                   <span className={`px-2 py-1 rounded-full text-xs font-semibold ${difficultyColors[workout.difficulty]}`}>
                     {workout.difficulty.toLowerCase()}
                   </span>
+                  {/* Community Badge */}
+                  {workout.isPublic && workout.creator && workout.creator.role !== 'ADMIN' && workout.creator.role !== 'SUPER_ADMIN' && (
+                    <span className="px-2 py-1 bg-purple-500 text-white rounded-full text-xs font-semibold">
+                      Community
+                    </span>
+                  )}
+                  {/* Private Badge */}
+                  {!workout.isPublic && workout.creatorId === user?.id && (
+                    <span className="px-2 py-1 bg-gray-600 text-white rounded-full text-xs font-semibold">
+                      Private
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -433,7 +487,7 @@ export default function WorkoutLibrary() {
                 )}
 
                 {/* Action Buttons */}
-                {isAdmin ? (
+                {isAdmin || workout.creatorId === user?.id ? (
                   <div className="flex gap-2">
                     <Link
                       to={`/workout/${workout.id}`}

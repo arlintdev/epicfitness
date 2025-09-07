@@ -18,6 +18,11 @@ import {
   FaUser,
   FaListUl,
   FaInfoCircle,
+  FaEdit,
+  FaSave,
+  FaTrash,
+  FaPlus,
+  FaTimes,
 } from 'react-icons/fa';
 import api from '../lib/api';
 import { useAuthStore } from '../store/authStore';
@@ -60,6 +65,7 @@ interface WorkoutDetails {
   equipment: string[];
   caloriesBurn?: number;
   exercises: Exercise[];
+  isPublic?: boolean;
   creator?: {
     id: string;
     username: string;
@@ -117,12 +123,18 @@ export default function WorkoutDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
   const [activeTab, setActiveTab] = useState<'exercises' | 'instructions'>('exercises');
   const [expandedExercise, setExpandedExercise] = useState<string | null>(null);
   const [localIsFavorited, setLocalIsFavorited] = useState<boolean>(false);
   const [localUserRating, setLocalUserRating] = useState<number>(0);
   const [localFavoriteCount, setLocalFavoriteCount] = useState<number>(0);
+  
+  // Edit states - admins and workout owners can edit
+  const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedWorkout, setEditedWorkout] = useState<WorkoutDetails | null>(null);
+  const [isOwner, setIsOwner] = useState(false);
 
   // Fetch workout details
   const { data: workout, isLoading, error } = useQuery<WorkoutDetails>({
@@ -134,9 +146,54 @@ export default function WorkoutDetail() {
       setLocalIsFavorited(data.isFavorited || false);
       setLocalUserRating(data.userRating || 0);
       setLocalFavoriteCount(data._count?.favoritedBy || 0);
+      setEditedWorkout(data); // Initialize edited workout
+      // Check if user is the owner
+      setIsOwner(user?.id === data.creator?.id);
       return data;
     },
   });
+
+  // Update workout mutation
+  const updateWorkoutMutation = useMutation({
+    mutationFn: async (updatedWorkout: Partial<WorkoutDetails>) => {
+      const response = await api.put(`/workouts/${id}`, updatedWorkout);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workout', id] });
+      toast.success('Workout updated successfully');
+      setIsEditing(false);
+    },
+    onError: () => {
+      toast.error('Failed to update workout');
+    },
+  });
+
+  // Delete workout mutation
+  const deleteWorkoutMutation = useMutation({
+    mutationFn: async () => {
+      await api.delete(`/workouts/${id}`);
+    },
+    onSuccess: () => {
+      toast.success('Workout deleted successfully');
+      navigate('/workouts');
+    },
+    onError: () => {
+      toast.error('Failed to delete workout');
+    },
+  });
+
+  const handleSaveWorkout = () => {
+    if (editedWorkout) {
+      updateWorkoutMutation.mutate(editedWorkout);
+    }
+  };
+
+  const handleDeleteWorkout = () => {
+    if (window.confirm(`Are you sure you want to delete "${workout?.title || workout?.name}"?`)) {
+      deleteWorkoutMutation.mutate();
+    }
+  };
 
   // Favorite mutation
   const favoriteMutation = useMutation({
@@ -282,12 +339,47 @@ export default function WorkoutDetail() {
             
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
               <div className="flex-1">
-                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2">
-                  {workout.title || workout.name}
-                </h1>
-                <p className="text-gray-200 text-lg mb-4 line-clamp-2">
-                  {workout.description}
-                </p>
+                {isEditing && (isAdmin || isOwner) ? (
+                  <>
+                    <input
+                      type="text"
+                      value={editedWorkout?.title || editedWorkout?.name || ''}
+                      onChange={(e) => setEditedWorkout({ ...editedWorkout!, title: e.target.value })}
+                      className="text-3xl md:text-4xl lg:text-5xl font-bold bg-white/20 backdrop-blur-sm text-white mb-2 px-2 py-1 rounded border border-white/30 w-full"
+                    />
+                    <textarea
+                      value={editedWorkout?.description || ''}
+                      onChange={(e) => setEditedWorkout({ ...editedWorkout!, description: e.target.value })}
+                      className="text-gray-200 text-lg mb-4 bg-white/20 backdrop-blur-sm px-2 py-1 rounded border border-white/30 w-full resize-none"
+                      rows={2}
+                    />
+                    {/* Privacy Toggle - Only for non-admin users */}
+                    {!isAdmin && isOwner && (
+                      <div className="flex items-center gap-2 mb-4">
+                        <label className="flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={editedWorkout?.isPublic || false}
+                            onChange={(e) => setEditedWorkout({ ...editedWorkout!, isPublic: e.target.checked })}
+                            className="mr-2 w-4 h-4"
+                          />
+                          <span className="text-white text-sm">
+                            Make this workout public (allow others to see and use it)
+                          </span>
+                        </label>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2">
+                      {workout.title || workout.name}
+                    </h1>
+                    <p className="text-gray-200 text-lg mb-4 line-clamp-2">
+                      {workout.description}
+                    </p>
+                  </>
+                )}
                 
                 {/* Badges */}
                 <div className="flex flex-wrap gap-2 mb-4">
@@ -326,31 +418,78 @@ export default function WorkoutDetail() {
 
               {/* Action Buttons */}
               <div className="flex items-center gap-3">
-                <button
-                  onClick={handleFavorite}
-                  className="p-3 bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-all transform hover:scale-110"
-                  disabled={favoriteMutation.isPending}
-                >
-                  {localIsFavorited ? (
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ type: "spring", stiffness: 500, damping: 15 }}
+                {(isAdmin || isOwner) ? (
+                  <>
+                    {isEditing ? (
+                      <>
+                        <button
+                          onClick={handleSaveWorkout}
+                          className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg transition-all transform hover:scale-105 flex items-center gap-2"
+                          disabled={updateWorkoutMutation.isPending}
+                        >
+                          <FaSave className="w-4 h-4" />
+                          Save Changes
+                        </button>
+                        <button
+                          onClick={() => {
+                            setIsEditing(false);
+                            setEditedWorkout(workout);
+                          }}
+                          className="px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white font-semibold rounded-lg transition-all transform hover:scale-105 flex items-center gap-2"
+                        >
+                          <FaTimes className="w-4 h-4" />
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => setIsEditing(true)}
+                          className="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-all transform hover:scale-105 flex items-center gap-2"
+                        >
+                          <FaEdit className="w-4 h-4" />
+                          Edit Workout
+                        </button>
+                        <button
+                          onClick={handleDeleteWorkout}
+                          className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-lg transition-all transform hover:scale-105 flex items-center gap-2"
+                          disabled={deleteWorkoutMutation.isPending}
+                        >
+                          <FaTrash className="w-4 h-4" />
+                          Delete
+                        </button>
+                      </>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={handleFavorite}
+                      className="p-3 bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-all transform hover:scale-110"
+                      disabled={favoriteMutation.isPending}
                     >
-                      <FaHeart className="h-6 w-6 text-red-500" />
-                    </motion.div>
-                  ) : (
-                    <FaRegHeart className="h-6 w-6 text-white" />
-                  )}
-                </button>
-                
-                <button
-                  onClick={handleStartWorkout}
-                  className="px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-lg transition-all transform hover:scale-105 flex items-center gap-2"
-                >
-                  <FaPlay className="w-4 h-4" />
-                  Start Workout
-                </button>
+                      {localIsFavorited ? (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ type: "spring", stiffness: 500, damping: 15 }}
+                        >
+                          <FaHeart className="h-6 w-6 text-red-500" />
+                        </motion.div>
+                      ) : (
+                        <FaRegHeart className="h-6 w-6 text-white" />
+                      )}
+                    </button>
+                    
+                    <button
+                      onClick={handleStartWorkout}
+                      className="px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-lg transition-all transform hover:scale-105 flex items-center gap-2"
+                    >
+                      <FaPlay className="w-4 h-4" />
+                      Start Workout
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -570,13 +709,65 @@ export default function WorkoutDetail() {
           <div className="space-y-6">
             {/* Quick Actions */}
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-              <button
-                onClick={handleStartWorkout}
-                className="w-full btn-primary py-4 text-lg font-semibold flex items-center justify-center gap-3 transform transition-all hover:scale-[1.02]"
-              >
-                <FaPlay className="w-5 h-5" />
-                Start Workout Now
-              </button>
+              {(isAdmin || isOwner) ? (
+                <div className="space-y-3">
+                  {isEditing ? (
+                    <>
+                      <button
+                        onClick={handleSaveWorkout}
+                        className="w-full bg-green-500 hover:bg-green-600 text-white py-4 text-lg font-semibold flex items-center justify-center gap-3 rounded-lg transform transition-all hover:scale-[1.02]"
+                        disabled={updateWorkoutMutation.isPending}
+                      >
+                        <FaSave className="w-5 h-5" />
+                        Save Changes
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsEditing(false);
+                          setEditedWorkout(workout);
+                        }}
+                        className="w-full bg-gray-500 hover:bg-gray-600 text-white py-4 text-lg font-semibold flex items-center justify-center gap-3 rounded-lg transform transition-all hover:scale-[1.02]"
+                      >
+                        <FaTimes className="w-5 h-5" />
+                        Cancel Editing
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => setIsEditing(true)}
+                        className="w-full bg-blue-500 hover:bg-blue-600 text-white py-4 text-lg font-semibold flex items-center justify-center gap-3 rounded-lg transform transition-all hover:scale-[1.02]"
+                      >
+                        <FaEdit className="w-5 h-5" />
+                        Edit This Workout
+                      </button>
+                      <button
+                        onClick={handleStartWorkout}
+                        className="w-full btn-primary py-4 text-lg font-semibold flex items-center justify-center gap-3 transform transition-all hover:scale-[1.02]"
+                      >
+                        <FaPlay className="w-5 h-5" />
+                        Preview Workout
+                      </button>
+                      <button
+                        onClick={handleDeleteWorkout}
+                        className="w-full bg-red-500 hover:bg-red-600 text-white py-4 text-lg font-semibold flex items-center justify-center gap-3 rounded-lg transform transition-all hover:scale-[1.02]"
+                        disabled={deleteWorkoutMutation.isPending}
+                      >
+                        <FaTrash className="w-5 h-5" />
+                        Delete Workout
+                      </button>
+                    </>
+                  )}
+                </div>
+              ) : (
+                <button
+                  onClick={handleStartWorkout}
+                  className="w-full btn-primary py-4 text-lg font-semibold flex items-center justify-center gap-3 transform transition-all hover:scale-[1.02]"
+                >
+                  <FaPlay className="w-5 h-5" />
+                  Start Workout Now
+                </button>
+              )}
             </div>
 
             {/* Workout Stats */}

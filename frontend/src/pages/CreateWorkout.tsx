@@ -35,6 +35,7 @@ const workoutSchema = z.object({
   targetMuscles: z.array(z.string()).min(1, 'Select at least one target muscle'),
   equipment: z.array(z.string()),
   caloriesBurn: z.number().optional(),
+  isPublic: z.boolean().optional(),
   exercises: z.array(z.object({
     exerciseId: z.string().min(1, 'Exercise is required'),
     sets: z.number().optional(),
@@ -97,6 +98,7 @@ interface Exercise {
 export default function CreateWorkout() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
+  const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'basic' | 'exercises' | 'instructions'>('basic');
@@ -117,6 +119,7 @@ export default function CreateWorkout() {
       exercises: [{ exerciseId: '', sets: 3, reps: '10', restTime: 60 }],
       targetMuscles: [],
       equipment: [],
+      isPublic: false, // Default to private for regular users
     },
   });
 
@@ -237,18 +240,24 @@ export default function CreateWorkout() {
     }
   };
 
-  // Check if user is admin
-  if (user?.role !== 'ADMIN' && user?.role !== 'SUPER_ADMIN') {
+  // Check if user is logged in
+  if (!user) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-6 text-center">
           <FaInfoCircle className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-yellow-800 dark:text-yellow-200 mb-2">
-            Admin Access Required
+            Login Required
           </h3>
-          <p className="text-yellow-600 dark:text-yellow-300">
-            Only administrators can create workouts.
+          <p className="text-yellow-600 dark:text-yellow-300 mb-4">
+            Please login to create your own workouts.
           </p>
+          <button
+            onClick={() => navigate('/login')}
+            className="btn-primary"
+          >
+            Login
+          </button>
         </div>
       </div>
     );
@@ -502,6 +511,27 @@ export default function CreateWorkout() {
                     ))}
                   </div>
                 </div>
+
+                {/* Privacy Toggle - Only for non-admin users */}
+                {!isAdmin && (
+                  <div className="col-span-full">
+                    <label className="flex items-center cursor-pointer p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                      <input
+                        type="checkbox"
+                        {...register('isPublic')}
+                        className="mr-3 w-5 h-5 text-primary-500 rounded focus:ring-primary-500"
+                      />
+                      <div className="flex-1">
+                        <span className="font-medium text-gray-900 dark:text-white">
+                          Make this workout public
+                        </span>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          Allow other users to discover and use your workout. It will appear in the community section.
+                        </p>
+                      </div>
+                    </label>
+                  </div>
+                )}
               </div>
             )}
 

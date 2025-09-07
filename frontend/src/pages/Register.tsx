@@ -107,9 +107,11 @@ export default function Register() {
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8">
           <div className="text-center mb-8">
             <div className="flex justify-center mb-4">
-              <div className="bg-primary-100 dark:bg-primary-900 p-3 rounded-full">
-                <FaDumbbell className="h-8 w-8 text-primary-500" />
-              </div>
+              <img 
+                src="/EpicFitnessLogo.png" 
+                alt="Epic Fitness Logo" 
+                className="h-20 w-auto"
+              />
             </div>
             <h2 className="text-3xl font-bold gradient-text mb-2">Create Your Account</h2>
             <p className="text-gray-600 dark:text-gray-400">Join the fitness revolution today</p>

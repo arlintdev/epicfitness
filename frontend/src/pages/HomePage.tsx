@@ -9,10 +9,22 @@ export default function HomePage() {
       <section className="relative hero-gradient py-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
         <div className="absolute inset-0 bg-black opacity-50"></div>
         <div className="relative max-w-7xl mx-auto text-center text-white">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6 }}
+            className="flex justify-center mb-8"
+          >
+            <img 
+              src="/EpicFitnessLogo.png" 
+              alt="Epic Fitness Logo" 
+              className="h-32 w-auto drop-shadow-2xl"
+            />
+          </motion.div>
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
             className="text-5xl md:text-7xl font-display font-bold mb-6"
           >
             Transform Your Body
