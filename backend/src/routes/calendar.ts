@@ -17,12 +17,17 @@ router.post('/calendar/token', authenticate, async (req, res) => {
     // Store the token in user's profile or a separate table
     // For now, we'll use the token directly without storing
     
+    // Get the actual host from the request
+    const protocol = req.protocol;
+    const host = req.get('host');
+    const baseUrl = process.env.BACKEND_URL || `${protocol}://${host}`;
+    
     res.json({
       success: true,
       data: {
         token,
-        subscriptionUrl: `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/calendar/feed/${token}.ics`,
-        webcalUrl: `webcal://${(process.env.BACKEND_URL || 'http://localhost:5000').replace(/^https?:\/\//, '')}/api/calendar/feed/${token}.ics`
+        subscriptionUrl: `${baseUrl}/api/calendar/feed/${token}.ics`,
+        webcalUrl: `webcal://${baseUrl.replace(/^https?:\/\//, '')}/api/calendar/feed/${token}.ics`
       }
     });
   } catch (error) {

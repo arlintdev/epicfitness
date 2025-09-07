@@ -16,7 +16,17 @@ export default function CalendarSubscribe() {
     setIsLoading(true);
     try {
       const response = await api.post('/calendar/token');
-      setCalendarUrls(response.data.data);
+      const urls = response.data.data;
+      
+      // Store the URLs
+      setCalendarUrls(urls);
+      
+      // Also store in localStorage for persistence
+      localStorage.setItem('calendarSubscription', JSON.stringify({
+        ...urls,
+        generatedAt: Date.now()
+      }));
+      
       setIsOpen(true);
     } catch (error) {
       toast.error('Failed to generate calendar subscription');
