@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaDownload, FaTimes, FaApple, FaAndroid, FaChrome, FaShareAlt } from 'react-icons/fa';
+import { FaDownload, FaTimes, FaApple, FaChrome, FaShareAlt } from 'react-icons/fa';
 import useInstallPrompt from '../../hooks/useInstallPrompt';
 
 export default function InstallPrompt() {
