@@ -14,11 +14,13 @@ import {
   FaCheckCircle,
   FaTrophy,
   FaExclamationCircle,
-  FaTimes
+  FaTimes,
+  FaVideo
 } from 'react-icons/fa';
 import api from '../lib/api';
 import toast from 'react-hot-toast';
 import { kudosService, KudosType } from '../services/kudos.service';
+import { getExerciseVideo, hasExerciseVideo } from '../data/exerciseVideos';
 
 interface Exercise {
   id: string;
@@ -76,9 +78,11 @@ export default function WorkoutSession() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isHolding, setIsHolding] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
+  const [showVideoModal, setShowVideoModal] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const totalTimeIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const holdTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   // Fetch workout details
   const { data: workout, isLoading } = useQuery<Workout>({
@@ -176,6 +180,13 @@ export default function WorkoutSession() {
       }
     };
   }, [isTimerRunning, isPaused, timeRemaining]);
+
+  // Auto-play video when modal opens
+  useEffect(() => {
+    if (showVideoModal && videoRef.current) {
+      videoRef.current.play();
+    }
+  }, [showVideoModal]);
 
   const handleTimerComplete = async () => {
     if (isResting) {
@@ -303,6 +314,32 @@ export default function WorkoutSession() {
     return (completedSets / totalSets) * 100;
   };
 
+  // Handle swipe gesture for video modal
+  const handleVideoModalSwipe = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    const startX = touch.clientX;
+    
+    const handleTouchMove = (e: TouchEvent) => {
+      const currentX = e.touches[0].clientX;
+      const diff = startX - currentX;
+      
+      // If swiped left more than 100px, close modal
+      if (diff > 100) {
+        setShowVideoModal(false);
+        document.removeEventListener('touchmove', handleTouchMove);
+        document.removeEventListener('touchend', handleTouchEnd);
+      }
+    };
+    
+    const handleTouchEnd = () => {
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+    };
+    
+    document.addEventListener('touchmove', handleTouchMove);
+    document.addEventListener('touchend', handleTouchEnd);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -335,6 +372,52 @@ export default function WorkoutSession() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Video Modal */}
+      <AnimatePresence>
+        {showVideoModal && hasExerciseVideo(currentExercise?.exercise.name || '') && (
+          <motion.div
+            initial={{ x: '-100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '-100%' }}
+            transition={{ type: 'spring', damping: 20 }}
+            onTouchStart={handleVideoModalSwipe}
+            className="fixed inset-0 bg-black z-50 flex flex-col overflow-hidden"
+          >
+            {/* Close button */}
+            <button
+              onClick={() => setShowVideoModal(false)}
+              className="absolute top-4 right-4 z-50 p-2 bg-white/20 backdrop-blur-sm rounded-full text-white hover:bg-white/30 transition-colors"
+              aria-label="Close video"
+            >
+              <FaTimes className="w-6 h-6" />
+            </button>
+            
+            {/* Video Container */}
+            <div className="relative flex-1 flex items-center justify-center overflow-hidden">
+              <video
+                ref={videoRef}
+                src={getExerciseVideo(currentExercise?.exercise.name || '') || ''}
+                controls
+                loop
+                playsInline
+                className="max-w-full max-h-full object-contain"
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+              >
+                Your browser does not support the video tag.
+              </video>
+            </div>
+            
+            {/* Exercise name overlay */}
+            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent pointer-events-none">
+              <h3 className="text-white text-lg font-semibold">
+                {currentExercise?.exercise.name}
+              </h3>
+              <p className="text-white/80 text-sm">Swipe left to close</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Exit Confirmation Modal */}
       <AnimatePresence>
         {showExitModal && (
@@ -626,22 +709,37 @@ export default function WorkoutSession() {
             </div>
           )}
 
-          {/* Complete Set Button */}
+          {/* Action Buttons */}
           {!isResting && (
-            <button
-              onClick={markStepComplete}
-              disabled={isStepCompleted(currentExercise.exerciseId, currentSet)}
-              className={`w-full py-3 sm:py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all transform text-base sm:text-lg ${
-                isStepCompleted(currentExercise.exerciseId, currentSet)
-                  ? 'bg-green-500 text-white cursor-not-allowed'
-                  : 'bg-primary-500 hover:bg-primary-600 text-white hover:scale-[1.02] active:scale-[0.98]'
-              }`}
-            >
-              <FaCheck className="w-4 h-4 sm:w-5 sm:h-5" />
-              {isStepCompleted(currentExercise.exerciseId, currentSet)
-                ? 'Set Completed ✓'
-                : 'Complete Set'}
-            </button>
+            <div className="flex gap-2">
+              {/* Show Video Button */}
+              {hasExerciseVideo(currentExercise.exercise.name) && (
+                <button
+                  onClick={() => setShowVideoModal(true)}
+                  className="px-4 py-3 sm:py-4 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-semibold flex items-center justify-center gap-2 hover:bg-gray-300 dark:hover:bg-gray-600 transition-all transform hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  <FaVideo className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span className="hidden sm:inline">Show Video</span>
+                  <span className="sm:hidden">Video</span>
+                </button>
+              )}
+              
+              {/* Complete Set Button */}
+              <button
+                onClick={markStepComplete}
+                disabled={isStepCompleted(currentExercise.exerciseId, currentSet)}
+                className={`flex-1 py-3 sm:py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all transform text-base sm:text-lg ${
+                  isStepCompleted(currentExercise.exerciseId, currentSet)
+                    ? 'bg-green-500 text-white cursor-not-allowed'
+                    : 'bg-primary-500 hover:bg-primary-600 text-white hover:scale-[1.02] active:scale-[0.98]'
+                }`}
+              >
+                <FaCheck className="w-4 h-4 sm:w-5 sm:h-5" />
+                {isStepCompleted(currentExercise.exerciseId, currentSet)
+                  ? 'Set Completed ✓'
+                  : 'Complete Set'}
+              </button>
+            </div>
           )}
 
           {isResting && (
