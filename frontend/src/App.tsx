@@ -24,6 +24,7 @@ import Programs from './pages/Programs';
 import Layout from './components/common/Layout';
 import PrivateRoute from './components/auth/PrivateRoute';
 import AdminRoute from './components/auth/AdminRoute';
+import ScrollToTop from './components/ScrollToTop';
 
 // Styles
 import './index.css';
@@ -43,6 +44,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <LudicrousProvider>
         <Router>
+          <ScrollToTop />
           <Layout>
             <Routes>
             {/* Public Routes */}
