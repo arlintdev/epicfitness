@@ -17,17 +17,38 @@ router.post('/calendar/token', authenticate, async (req, res) => {
     // Store the token in user's profile or a separate table
     // For now, we'll use the token directly without storing
     
-    // Get the actual host from the request
-    const protocol = req.protocol;
-    const host = req.get('host');
-    const baseUrl = process.env.BACKEND_URL || `${protocol}://${host}`;
+    // Determine the base URL based on environment
+    let baseUrl: string;
+    
+    // Check for common production environment variables
+    if (process.env.RENDER_EXTERNAL_URL) {
+      // Render.com provides this
+      baseUrl = process.env.RENDER_EXTERNAL_URL;
+    } else if (process.env.BACKEND_URL) {
+      // Custom backend URL if set
+      baseUrl = process.env.BACKEND_URL;
+    } else if (process.env.NODE_ENV === 'production') {
+      // In production without explicit URL, try to use the host header
+      // But be aware this might be behind a proxy
+      const forwardedProto = req.get('x-forwarded-proto');
+      const forwardedHost = req.get('x-forwarded-host') || req.get('host');
+      baseUrl = `${forwardedProto || 'https'}://${forwardedHost}`;
+    } else {
+      // In development, construct from request
+      const protocol = req.protocol;
+      const host = req.get('host');
+      baseUrl = `${protocol}://${host}`;
+    }
+    
+    // Ensure the URL doesn't have /api/v1 if it's already in BACKEND_URL
+    const cleanBaseUrl = baseUrl.replace(/\/api\/v1\/?$/, '');
     
     res.json({
       success: true,
       data: {
         token,
-        subscriptionUrl: `${baseUrl}/api/calendar/feed/${token}.ics`,
-        webcalUrl: `webcal://${baseUrl.replace(/^https?:\/\//, '')}/api/calendar/feed/${token}.ics`
+        subscriptionUrl: `${cleanBaseUrl}/api/v1/calendar/feed/${token}.ics`,
+        webcalUrl: `webcal://${cleanBaseUrl.replace(/^https?:\/\//, '')}/api/v1/calendar/feed/${token}.ics`
       }
     });
   } catch (error) {
