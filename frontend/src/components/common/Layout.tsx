@@ -36,6 +36,14 @@ export default function Layout({ children }: LayoutProps) {
 
               {/* Desktop Navigation */}
               <div className="hidden md:ml-10 md:flex md:space-x-8">
+                {isAuthenticated && (
+                  <Link
+                    to="/dashboard"
+                    className="text-gray-700 dark:text-gray-300 hover:text-primary-500 px-3 py-2 text-sm font-medium"
+                  >
+                    Dashboard
+                  </Link>
+                )}
                 <Link
                   to="/workouts"
                   className="text-gray-700 dark:text-gray-300 hover:text-primary-500 px-3 py-2 text-sm font-medium"
@@ -44,12 +52,6 @@ export default function Layout({ children }: LayoutProps) {
                 </Link>
                 {isAuthenticated && (
                   <>
-                    <Link
-                      to="/dashboard"
-                      className="text-gray-700 dark:text-gray-300 hover:text-primary-500 px-3 py-2 text-sm font-medium"
-                    >
-                      Dashboard
-                    </Link>
                     <Link
                       to="/schedule"
                       className="text-gray-700 dark:text-gray-300 hover:text-primary-500 px-3 py-2 text-sm font-medium"
@@ -157,6 +159,15 @@ export default function Layout({ children }: LayoutProps) {
                 )}
               </button>
               
+              {isAuthenticated && (
+                <Link
+                  to="/dashboard"
+                  className="block text-gray-700 dark:text-gray-300 hover:text-primary-500 px-3 py-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Dashboard
+                </Link>
+              )}
               <Link
                 to="/workouts"
                 className="block text-gray-700 dark:text-gray-300 hover:text-primary-500 px-3 py-2"
@@ -166,13 +177,6 @@ export default function Layout({ children }: LayoutProps) {
               </Link>
               {isAuthenticated ? (
                 <>
-                  <Link
-                    to="/dashboard"
-                    className="block text-gray-700 dark:text-gray-300 hover:text-primary-500 px-3 py-2"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Dashboard
-                  </Link>
                   <Link
                     to="/schedule"
                     className="block text-gray-700 dark:text-gray-300 hover:text-primary-500 px-3 py-2"
