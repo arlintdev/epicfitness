@@ -160,7 +160,7 @@ export default function CreateWorkout() {
       const response = await api.post('/workouts', payload);
       return response.data;
     },
-    onSuccess: (workout) => {
+    onSuccess: () => {
       toast.success('Workout created successfully!');
       navigate('/workouts');
     },

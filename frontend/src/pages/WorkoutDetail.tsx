@@ -21,7 +21,6 @@ import {
   FaEdit,
   FaSave,
   FaTrash,
-  FaPlus,
   FaTimes,
 } from 'react-icons/fa';
 import api from '../lib/api';

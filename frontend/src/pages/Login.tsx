@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { motion } from 'framer-motion';
-import { FaLock, FaEye, FaEyeSlash, FaDumbbell, FaSignInAlt, FaUser, FaInstagram, FaGoogle } from 'react-icons/fa';
+import { FaLock, FaEye, FaEyeSlash, FaSignInAlt, FaUser, FaInstagram, FaGoogle } from 'react-icons/fa';
 import { useAuthStore } from '../store/authStore';
 import toast from 'react-hot-toast';
 
