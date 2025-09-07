@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import PullToRefresh from '../components/common/PullToRefresh';
 import {
   FaDumbbell,
   FaSearch,
@@ -181,8 +182,13 @@ export default function WorkoutLibrary() {
   const hasActiveFilters = searchQuery || selectedCategory !== 'All' || 
                            selectedDifficulty !== 'All' || selectedMuscleGroups.length > 0;
 
+  const handleRefresh = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['workouts'] });
+  };
+
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <PullToRefresh onRefresh={handleRefresh}>
+      <div className="max-w-7xl mx-auto px-4 py-8">
       {/* Header */}
       <div className="mb-8 flex justify-between items-start">
         <div>
@@ -525,5 +531,6 @@ export default function WorkoutLibrary() {
         </div>
       )}
     </div>
+    </PullToRefresh>
   );
 }

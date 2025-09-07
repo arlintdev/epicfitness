@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import PullToRefresh from '../components/common/PullToRefresh';
 import {
   FaDumbbell,
   FaFire,
@@ -74,9 +75,9 @@ export default function Dashboard() {
     fetchDashboardData();
   }, []);
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = async (showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) setLoading(true);
       setError(null);
 
       // Fetch all data in parallel
@@ -112,7 +113,7 @@ export default function Dashboard() {
       console.error('Error fetching dashboard data:', err);
       setError('Failed to load dashboard data');
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
@@ -143,8 +144,13 @@ export default function Dashboard() {
     }
   };
 
+  const handleRefresh = async () => {
+    await fetchDashboardData(false);
+  };
+
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <PullToRefresh onRefresh={handleRefresh}>
+      <div className="max-w-7xl mx-auto px-4 py-8">
       {/* Loading State */}
       {loading && (
         <div className="flex items-center justify-center py-12">
@@ -567,5 +573,6 @@ export default function Dashboard() {
         </motion.div>
       </div>
     </div>
+    </PullToRefresh>
   );
 }
