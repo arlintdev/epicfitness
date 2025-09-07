@@ -159,7 +159,7 @@ export default function CreateWorkout() {
     },
     onSuccess: (workout) => {
       toast.success('Workout created successfully!');
-      navigate(`/workouts/${workout.id}`);
+      navigate('/workouts');
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.error?.message || 'Failed to create workout');

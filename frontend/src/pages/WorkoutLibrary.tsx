@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   FaDumbbell,
   FaSearch,
@@ -13,10 +13,14 @@ import {
   FaSpinner,
   FaExclamationCircle,
   FaLock,
+  FaEdit,
+  FaTrash,
+  FaPlus,
 } from 'react-icons/fa';
 import api from '../lib/api';
 import { useAuthStore } from '../store/authStore';
 import { userApi } from '../api/user';
+import toast from 'react-hot-toast';
 
 // Types
 interface Workout {
@@ -76,12 +80,36 @@ const difficulties = ['All', 'BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT'];
 
 export default function WorkoutLibrary() {
   const { user } = useAuthStore();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedDifficulty, setSelectedDifficulty] = useState('All');
   const [selectedMuscleGroups, setSelectedMuscleGroups] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [userEquipment, setUserEquipment] = useState<string[]>([]);
+
+  const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
+
+  // Delete workout mutation
+  const deleteWorkoutMutation = useMutation({
+    mutationFn: async (workoutId: string) => {
+      await api.delete(`/workouts/${workoutId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workouts'] });
+      toast.success('Workout deleted successfully');
+    },
+    onError: () => {
+      toast.error('Failed to delete workout');
+    },
+  });
+
+  const handleDeleteWorkout = (workoutId: string, workoutTitle: string) => {
+    if (window.confirm(`Are you sure you want to delete "${workoutTitle}"?`)) {
+      deleteWorkoutMutation.mutate(workoutId);
+    }
+  };
 
   // Fetch user profile to get available equipment
   useEffect(() => {
@@ -150,13 +178,24 @@ export default function WorkoutLibrary() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-          Workout Library
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          Discover workouts tailored to your fitness goals
-        </p>
+      <div className="mb-8 flex justify-between items-start">
+        <div>
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
+            Workout Library
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            {isAdmin ? 'Manage and organize your workout library' : 'Discover workouts tailored to your fitness goals'}
+          </p>
+        </div>
+        {isAdmin && (
+          <button
+            onClick={() => navigate('/create-workout')}
+            className="btn-primary flex items-center gap-2"
+          >
+            <FaPlus />
+            Create New Workout
+          </button>
+        )}
       </div>
 
       {/* Search and Filter Bar */}
@@ -393,7 +432,26 @@ export default function WorkoutLibrary() {
                   </div>
                 )}
 
-                {/* Action Button */}
+                {/* Action Buttons */}
+                {isAdmin ? (
+                  <div className="flex gap-2">
+                    <Link
+                      to={`/workout/${workout.id}`}
+                      className="flex-1 btn-secondary text-center flex items-center justify-center gap-2"
+                    >
+                      <FaEdit />
+                      Edit
+                    </Link>
+                    <button
+                      onClick={() => handleDeleteWorkout(workout.id, workout.title)}
+                      className="flex-1 btn-danger text-center flex items-center justify-center gap-2"
+                      disabled={deleteWorkoutMutation.isPending}
+                    >
+                      <FaTrash />
+                      Delete
+                    </button>
+                  </div>
+                ) : (
                 <Link
                   to={`/workout/${workout.id}`}
                   className={`w-full text-center ${
@@ -405,6 +463,7 @@ export default function WorkoutLibrary() {
                 >
                   {canDoWorkout ? 'View Workout' : 'Equipment Required'}
                 </Link>
+                )}
               </div>
             </motion.div>
             );
