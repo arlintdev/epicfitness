@@ -4,7 +4,7 @@
   "description": "Transform your body and mind with our comprehensive workout platform",
   "start_url": "/",
   "display": "standalone",
-  "theme_color": "#6366f1",
+  "theme_color": "#f97316",
   "background_color": "#ffffff",
   "orientation": "portrait",
   "icons": [
