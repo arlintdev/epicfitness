@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { FaSync } from 'react-icons/fa';
 import usePullToRefresh from '../../hooks/usePullToRefresh';
 
