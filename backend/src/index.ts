@@ -29,6 +29,7 @@ import adminRoutes from './routes/admin.routes';
 import kudosRoutes from './routes/kudos.routes';
 import quoteRoutes from './routes/quote.routes';
 import scheduleRoutes from './routes/schedule.routes';
+import calendarRoutes from './routes/calendar';
 
 const app = express();
 const httpServer = createServer(app);
@@ -114,6 +115,7 @@ app.use(`${apiPrefix}/admin`, adminRoutes);
 app.use(`${apiPrefix}/kudos`, kudosRoutes);
 app.use(`${apiPrefix}/quotes`, quoteRoutes);
 app.use(`${apiPrefix}/schedules`, scheduleRoutes);
+app.use(`${apiPrefix}`, calendarRoutes); // Calendar routes have their own /calendar prefix
 
 // Socket.io connection handling
 io.on('connection', (socket) => {

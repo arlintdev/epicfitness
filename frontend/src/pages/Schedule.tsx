@@ -24,6 +24,7 @@ import {
 import api from '../lib/api';
 import toast from 'react-hot-toast';
 import ScheduleWorkoutModal from '../components/ScheduleWorkoutModal';
+import CalendarSubscribe from '../components/CalendarSubscribe';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import '../styles/calendar.css';
 
@@ -235,6 +236,7 @@ export default function Schedule() {
             </p>
           </div>
           <div className="flex gap-2 sm:gap-4">
+            <CalendarSubscribe />
             <button
               onClick={() => setShowListView(!showListView)}
               className={`px-3 sm:px-4 py-2 rounded-lg flex items-center gap-1 sm:gap-2 text-sm sm:text-base transition-colors ${
