@@ -6,16 +6,87 @@ import { addDays, format, startOfDay, endOfDay } from 'date-fns';
 const router = Router();
 const prisma = new PrismaClient();
 
-// Generate a unique calendar token for subscription
+// Get existing calendar subscription
+router.get('/calendar/token', authenticate, async (req, res) => {
+  try {
+    const userId = req.user!.id;
+    
+    // Check if user has a calendar token
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { calendarToken: true }
+    });
+    
+    if (!user?.calendarToken) {
+      return res.json({
+        success: true,
+        data: null
+      });
+    }
+    
+    // Determine the base URL based on environment
+    let baseUrl: string;
+    
+    // Check for common production environment variables
+    if (process.env.RENDER_EXTERNAL_URL) {
+      // Render.com provides this
+      baseUrl = process.env.RENDER_EXTERNAL_URL;
+    } else if (process.env.BACKEND_URL) {
+      // Custom backend URL if set
+      baseUrl = process.env.BACKEND_URL;
+    } else if (process.env.NODE_ENV === 'production') {
+      // In production without explicit URL, try to use the host header
+      // But be aware this might be behind a proxy
+      const forwardedProto = req.get('x-forwarded-proto');
+      const forwardedHost = req.get('x-forwarded-host') || req.get('host');
+      baseUrl = `${forwardedProto || 'https'}://${forwardedHost}`;
+    } else {
+      // In development, construct from request
+      const protocol = req.protocol;
+      const host = req.get('host');
+      baseUrl = `${protocol}://${host}`;
+    }
+    
+    // Ensure the URL doesn't have /api/v1 if it's already in BACKEND_URL
+    const cleanBaseUrl = baseUrl.replace(/\/api\/v1\/?$/, '');
+    
+    res.json({
+      success: true,
+      data: {
+        token: user.calendarToken,
+        subscriptionUrl: `${cleanBaseUrl}/api/v1/calendar/feed/${user.calendarToken}.ics`,
+        webcalUrl: `webcal://${cleanBaseUrl.replace(/^https?:\/\//, '')}/api/v1/calendar/feed/${user.calendarToken}.ics`
+      }
+    });
+  } catch (error) {
+    console.error('Error retrieving calendar token:', error);
+    res.status(500).json({ success: false, error: { message: 'Failed to retrieve calendar token' } });
+  }
+});
+
+// Get or generate calendar token for subscription
 router.post('/calendar/token', authenticate, async (req, res) => {
   try {
-    const userId = req.user!.userId;
+    const userId = req.user!.id;
     
-    // Generate a unique token for calendar subscription
-    const token = Buffer.from(`${userId}:${Date.now()}`).toString('base64');
+    // Check if user already has a calendar token
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { calendarToken: true }
+    });
     
-    // Store the token in user's profile or a separate table
-    // For now, we'll use the token directly without storing
+    let token = user?.calendarToken;
+    
+    // Generate a new token if user doesn't have one
+    if (!token) {
+      token = Buffer.from(`${userId}:${Date.now()}:${Math.random().toString(36).substring(7)}`).toString('base64');
+      
+      // Save the token to the user's profile
+      await prisma.user.update({
+        where: { id: userId },
+        data: { calendarToken: token }
+      });
+    }
     
     // Determine the base URL based on environment
     let baseUrl: string;
@@ -61,14 +132,19 @@ router.post('/calendar/token', authenticate, async (req, res) => {
 router.get('/calendar/feed/:token.ics', async (req, res) => {
   try {
     const { token } = req.params;
+    const cleanToken = token.replace('.ics', '');
     
-    // Decode token to get userId
-    const decoded = Buffer.from(token.replace('.ics', ''), 'base64').toString();
-    const [userId] = decoded.split(':');
+    // Find user by calendar token
+    const user = await prisma.user.findUnique({
+      where: { calendarToken: cleanToken },
+      select: { id: true }
+    });
     
-    if (!userId) {
+    if (!user) {
       return res.status(401).send('Invalid calendar token');
     }
+    
+    const userId = user.id;
     
     // Fetch user's scheduled workouts for the next 30 days
     const startDate = startOfDay(new Date());
